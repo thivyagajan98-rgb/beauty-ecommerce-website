@@ -21,7 +21,7 @@ export default function Header() {
     <header className="sticky top-0 z-40 border-b border-ink/5 bg-cream/80 backdrop-blur">
       {/* Top announcement */}
       <div className="bg-ink py-1.5 text-center text-[11px] font-medium uppercase tracking-[0.2em] text-cream">
-        100% Authentic · Island-wide Delivery · Cash on Delivery
+        100% Authentic · Island-wide Delivery · Secure Card Payments
       </div>
 
       <div className="container-x flex h-16 items-center justify-between gap-4">

@@ -132,7 +132,7 @@ export default function ProductPage({ params }: Props) {
 
           {/* Trust details */}
           <ul className="mt-6 grid grid-cols-1 gap-3 text-xs text-ink/70 sm:grid-cols-2">
-            <li className="flex gap-2"><Bullet />Cash on Delivery available</li>
+            <li className="flex gap-2"><Bullet />Secure card payments via PayHere</li>
             <li className="flex gap-2"><Bullet />Island-wide shipping in 2–4 days</li>
             <li className="flex gap-2"><Bullet />7-day defect-free guarantee</li>
             <li className="flex gap-2"><Bullet />Discreet, secure packaging</li>

@@ -11,7 +11,7 @@ Built with **Next.js 14** (App Router), **TypeScript**, **Tailwind CSS**, **Zust
 ## Features
 
 - **Storefront** — Home, Shop (with category/subcategory/brand/tag/condition filters & sort), Product detail (gallery, condition, authenticity note, related products), Brands index + per-brand pages.
-- **Cart & Checkout** — Persistent cart (localStorage), Cart page, multi-step Checkout with Sri Lanka cities, three payment methods (Cash on Delivery, PayHere, Bank Transfer), order confirmation page.
+- **Cart & Checkout** — Persistent cart (localStorage), Cart page, multi-step Checkout with Sri Lanka cities, two payment methods (PayHere card payments, Bank Transfer), order confirmation page.
 - **Special pages** — Viral, Offers, Gift Sets, Online Exclusives.
 - **Legal** — Authenticity Guarantee, Return Policy, Privacy Policy, Brand Disclaimer, Contact.
 - **Admin** — `/admin` dashboard (orders + products + KPIs).

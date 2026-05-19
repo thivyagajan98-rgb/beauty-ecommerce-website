@@ -100,13 +100,7 @@ export default function OrderConfirmationClient({ orderId }: { orderId: string }
             <Row label="Total" value={formatLKR(order.total)} bold />
             <Row
               label="Payment"
-              value={
-                order.paymentMethod === "cod"
-                  ? "Cash on Delivery"
-                  : order.paymentMethod === "payhere"
-                    ? "Card · PayHere"
-                    : "Bank Transfer"
-              }
+              value={order.paymentMethod === "payhere" ? "Card · PayHere" : "Bank Transfer"}
             />
           </dl>
         </div>

@@ -66,7 +66,7 @@ export interface CartItem {
   qty: number;
 }
 
-export type PaymentMethod = "cod" | "payhere" | "bank-transfer";
+export type PaymentMethod = "payhere" | "bank-transfer";
 
 export interface OrderItem {
   productId: string;

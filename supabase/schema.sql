@@ -20,7 +20,7 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 do $$ begin
-  create type payment_method as enum ('cod', 'payhere', 'bank-transfer');
+  create type payment_method as enum ('payhere', 'bank-transfer');
 exception when duplicate_object then null; end $$;
 
 -- Tables -------------------------------------------------------------

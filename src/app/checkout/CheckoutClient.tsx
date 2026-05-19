@@ -45,7 +45,7 @@ export default function CheckoutClient() {
     city: "Colombo",
     notes: ""
   });
-  const [payment, setPayment] = useState<PaymentMethod>("cod");
+  const [payment, setPayment] = useState<PaymentMethod>("payhere");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -98,7 +98,7 @@ export default function CheckoutClient() {
       shipping: totals.shipping,
       total: totals.total,
       paymentMethod: payment,
-      status: payment === "cod" ? "confirmed" : "pending",
+      status: "pending",
       createdAt: new Date().toISOString()
     };
 
@@ -191,17 +191,11 @@ export default function CheckoutClient() {
           <Section title="3 · Payment">
             <div className="space-y-3">
               <PayOption
-                checked={payment === "cod"}
-                onClick={() => setPayment("cod")}
-                title="Cash on Delivery"
-                body="Pay in cash when your order arrives. Available island-wide."
-                badge="Most popular"
-              />
-              <PayOption
                 checked={payment === "payhere"}
                 onClick={() => setPayment("payhere")}
                 title="Card payment · PayHere"
-                body="Visa, MasterCard, Amex via PayHere (Sri Lanka). You'll be redirected to complete payment."
+                body="Visa, MasterCard, Amex via PayHere (Sri Lanka). You'll be redirected to complete payment securely."
+                badge="Most popular"
               />
               <PayOption
                 checked={payment === "bank-transfer"}

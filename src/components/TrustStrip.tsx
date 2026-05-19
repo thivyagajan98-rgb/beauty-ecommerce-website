@@ -1,7 +1,7 @@
 const ITEMS = [
   { title: "100% Authentic", body: "Verified sourcing & batch codes" },
   { title: "Island-wide Delivery", body: "2–4 business days" },
-  { title: "Cash on Delivery", body: "Pay when it arrives" },
+  { title: "Secure Payments", body: "PayHere & bank transfer" },
   { title: "Easy Returns", body: "7-day defect-free guarantee" }
 ];
 

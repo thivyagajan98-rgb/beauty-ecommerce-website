@@ -124,11 +124,7 @@ export default function AdminClient() {
                       </td>
                       <td className="px-4 py-3 align-top font-medium">{formatLKR(o.total)}</td>
                       <td className="px-4 py-3 align-top text-xs uppercase tracking-wider">
-                        {o.paymentMethod === "cod"
-                          ? "COD"
-                          : o.paymentMethod === "payhere"
-                            ? "Card"
-                            : "Bank"}
+                        {o.paymentMethod === "payhere" ? "Card" : "Bank"}
                       </td>
                       <td className="px-4 py-3 align-top">
                         <select

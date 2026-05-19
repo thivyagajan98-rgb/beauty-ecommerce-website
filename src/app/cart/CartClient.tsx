@@ -139,7 +139,7 @@ export default function CartClient() {
           <Link href="/checkout" className="btn-primary mt-5 w-full">Checkout</Link>
           <Link href="/shop" className="btn-outline mt-2 w-full">Continue shopping</Link>
           <p className="mt-4 text-[11px] text-ink/50">
-            Cash on Delivery, PayHere & Bank Transfer accepted at checkout.
+            PayHere card payments & bank transfer accepted at checkout.
           </p>
         </aside>
       </div>

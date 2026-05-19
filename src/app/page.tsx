@@ -36,7 +36,7 @@ export default function HomePage() {
 
             <ul className="mt-8 grid grid-cols-2 gap-3 text-xs text-ink/70 sm:grid-cols-3">
               <li className="flex items-center gap-2"><Dot /> 100% Authentic</li>
-              <li className="flex items-center gap-2"><Dot /> Cash on Delivery</li>
+              <li className="flex items-center gap-2"><Dot /> Secure Card Payments</li>
               <li className="flex items-center gap-2"><Dot /> Island-wide</li>
             </ul>
           </div>

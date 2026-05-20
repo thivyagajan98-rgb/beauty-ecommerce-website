@@ -114,15 +114,26 @@ NEXT_PUBLIC_LOGO_SRC_DARK=
 
 6. **Restart `npm run dev`**. Pages now read from Supabase. They revalidate every 60 seconds — add or edit a product in the Supabase dashboard, refresh the storefront after \~60s.
 
-### Managing your catalog from Supabase
+### Managing your catalog
 
-Once connected, you can:
+There are two ways to add or edit brands and products:
 
-- **Add a brand**: Table Editor → `brands` → Insert row. Fill `slug` (lowercase-with-dashes), `name`, optional `description`. The `/brands/[slug]` page will be available immediately.
-- **Add a product**: Table Editor → `products` → Insert row. Required fields: `slug`, `name`, `brand_slug` (must match an existing brand), `category` (`face`/`cheek`/`eyes`/`lips`), `subcategory`, `price`, `condition` (`new`/`gently-used`), `images` (array of URLs), `stock`. Optional: `original_price`, `tags` (array — `viral`/`new`/`offer`/`exclusive`/`gift-set`), `authenticity_note`, `rating`, `reviews`.
-- **Upload product images**: Storage → create a `product-images` bucket (public) → upload images → copy the public URL → paste into the product’s `images` array.
+#### Option A — From the Admin panel (recommended)
 
-Pages revalidate every 60 seconds (ISR), so changes show up shortly after a request hits the page.
+After signing in at `/admin`, use the **Products** and **Brands** tabs:
+- Click **+ New product** or **+ New brand** to add.
+- Click any row (or its **Edit →** button) to update.
+- Within the form, **Delete** removes the row (with a confirmation step).
+
+The first time you set up Supabase, also run `supabase/admin_policies.sql` so authenticated users can write to the `products` and `brands` tables.
+
+#### Option B — From the Supabase dashboard
+
+- **Add a brand**: Table Editor → `brands` → Insert row. Fill `slug` (lowercase-with-dashes), `name`, optional `description`.
+- **Add a product**: Table Editor → `products` → Insert row. Required: `slug`, `name`, `brand_slug` (must match an existing brand), `category` (`face`/`cheek`/`eyes`/`lips`), `subcategory`, `price`, `condition` (`new`/`gently-used`), `images` (array of URLs), `stock`. Optional: `original_price`, `tags` (array — `viral`/`new`/`offer`/`exclusive`/`gift-set`), `authenticity_note`, `rating`, `reviews`.
+- **Upload product images**: Storage → create a `product-images` public bucket → upload → copy public URL → paste into the product’s `images` array.
+
+Either way, pages revalidate every 60 seconds (ISR), so changes show up shortly after a request hits the page.
 
 ---
 

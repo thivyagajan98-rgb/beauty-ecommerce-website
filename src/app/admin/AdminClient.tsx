@@ -7,12 +7,15 @@ import {
   getOrders as getLocalOrders,
   updateOrderStatus as updateLocalOrderStatus
 } from "@/lib/orders";
-import { fetchAllProducts } from "@/lib/catalog";
+import { fetchAllBrands, fetchAllProducts } from "@/lib/catalog";
 import { formatLKR } from "@/lib/format";
 import { getSupabase } from "@/lib/supabase";
-import type { Order, Product } from "@/lib/types";
+import type { Brand, Order, Product } from "@/lib/types";
+import Modal from "@/components/admin/Modal";
+import ProductForm from "@/components/admin/ProductForm";
+import BrandForm from "@/components/admin/BrandForm";
 
-type Tab = "overview" | "orders" | "products";
+type Tab = "overview" | "orders" | "products" | "brands";
 type AuthState = "checking" | "authed" | "unauthed" | "no-supabase";
 
 const STATUS: Order["status"][] = [
@@ -66,7 +69,15 @@ export default function AdminClient() {
   const [tab, setTab] = useState<Tab>("overview");
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [tick, setTick] = useState(0);
+
+  // Form state
+  const [editingProduct, setEditingProduct] = useState<Product | null | undefined>(undefined);
+  const [editingBrand, setEditingBrand] = useState<Brand | null | undefined>(undefined);
+
+  const productModalOpen = editingProduct !== undefined;
+  const brandModalOpen = editingBrand !== undefined;
 
   /* --------------------------- auth check --------------------------- */
   useEffect(() => {
@@ -106,8 +117,8 @@ export default function AdminClient() {
     if (auth === "checking" || auth === "unauthed") return;
     const sb = getSupabase();
 
-    // Always load products via the catalog (works in both dev & live mode).
     fetchAllProducts().then(setProducts);
+    fetchAllBrands().then(setBrands);
 
     if (sb && auth === "authed") {
       sb.from("orders")
@@ -121,7 +132,6 @@ export default function AdminClient() {
           setOrders((data as OrderRow[]).map(mapOrder));
         });
     } else {
-      // Local-dev fallback.
       setOrders(getLocalOrders());
     }
   }, [auth, tick]);
@@ -135,9 +145,10 @@ export default function AdminClient() {
       revenue: totalRevenue,
       pending,
       confirmed,
-      products: products.length
+      products: products.length,
+      brands: brands.length
     };
-  }, [orders, products]);
+  }, [orders, products, brands]);
 
   /* --------------------------- actions ------------------------------ */
   const onStatus = async (id: string, status: Order["status"]) => {
@@ -157,6 +168,15 @@ export default function AdminClient() {
     router.replace("/admin/login");
   };
 
+  const onProductSaved = () => {
+    setEditingProduct(undefined);
+    setTick((t) => t + 1);
+  };
+  const onBrandSaved = () => {
+    setEditingBrand(undefined);
+    setTick((t) => t + 1);
+  };
+
   /* --------------------------- render ------------------------------- */
   if (auth === "checking" || auth === "unauthed") {
     return (
@@ -166,14 +186,16 @@ export default function AdminClient() {
     );
   }
 
+  const canEdit = auth === "authed";
+
   return (
     <section className="container-x py-10">
       {auth === "no-supabase" && (
         <div className="mb-6 rounded-2xl border border-blush-200 bg-blush-50 p-4 text-sm text-blush-700">
           <p className="font-semibold">Local dev mode</p>
           <p className="mt-1 text-xs">
-            Supabase env vars aren’t set, so this dashboard reads orders from this device’s
-            localStorage. Configure Supabase to enable real authentication and live orders.
+            Supabase env vars aren’t set. Configure Supabase to enable real authentication,
+            live orders, and admin-panel catalog editing.
           </p>
         </div>
       )}
@@ -199,8 +221,8 @@ export default function AdminClient() {
             )}
           </p>
         </div>
-        <nav className="flex gap-1 rounded-full bg-white p-1 shadow-soft">
-          {(["overview", "orders", "products"] as Tab[]).map((t) => (
+        <nav className="flex flex-wrap gap-1 rounded-full bg-white p-1 shadow-soft">
+          {(["overview", "orders", "products", "brands"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -221,6 +243,7 @@ export default function AdminClient() {
           <Stat label="Pending" value={stats.pending.toString()} accent />
           <Stat label="Confirmed" value={stats.confirmed.toString()} />
           <Stat label="Products" value={stats.products.toString()} />
+          <Stat label="Brands" value={stats.brands.toString()} />
         </div>
       )}
 
@@ -296,47 +319,191 @@ export default function AdminClient() {
       )}
 
       {tab === "products" && (
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-ink/5 bg-white">
-          <table className="w-full text-sm">
-            <thead className="border-b border-ink/5 bg-cream/60 text-left text-xs uppercase tracking-wider text-ink/60">
-              <tr>
-                <th className="px-4 py-3">Product</th>
-                <th className="px-4 py-3">Brand</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Condition</th>
-                <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Stock</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-ink/5">
-              {products.map((p) => (
-                <tr key={p.id}>
-                  <td className="px-4 py-3">
-                    <Link href={`/product/${p.slug}`} className="font-medium hover:underline">
-                      {p.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-xs">{p.brandName ?? p.brandSlug}</td>
-                  <td className="px-4 py-3 text-xs capitalize">
-                    {p.category} · {p.subcategory}
-                  </td>
-                  <td className="px-4 py-3 text-xs capitalize">
-                    {p.condition.replace("-", " ")}
-                  </td>
-                  <td className="px-4 py-3 font-medium">{formatLKR(p.price)}</td>
-                  <td className="px-4 py-3 text-xs">
-                    <span className={p.stock <= 3 ? "text-blush-700" : ""}>{p.stock}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="border-t border-ink/5 p-4 text-xs text-ink/50">
-            Edit products directly in the Supabase Table Editor → <code>products</code>. Pages
-            revalidate every 60 seconds.
-          </p>
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-ink/60">{products.length} products</p>
+            <button
+              onClick={() => setEditingProduct(null)}
+              disabled={!canEdit || brands.length === 0}
+              className="btn-primary text-xs"
+              title={
+                !canEdit
+                  ? "Sign in with a Supabase admin to edit"
+                  : brands.length === 0
+                    ? "Create a brand first"
+                    : ""
+              }
+            >
+              + New product
+            </button>
+          </div>
+
+          {products.length === 0 ? (
+            <Empty
+              title="No products yet"
+              body={canEdit ? "Click ‘+ New product’ to add your first one." : "Add products from Supabase or sign in."}
+            />
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-ink/5 bg-white">
+              <table className="w-full text-sm">
+                <thead className="border-b border-ink/5 bg-cream/60 text-left text-xs uppercase tracking-wider text-ink/60">
+                  <tr>
+                    <th className="px-4 py-3">Product</th>
+                    <th className="px-4 py-3">Brand</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3">Condition</th>
+                    <th className="px-4 py-3">Price</th>
+                    <th className="px-4 py-3">Stock</th>
+                    <th className="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-ink/5">
+                  {products.map((p) => (
+                    <tr
+                      key={p.id}
+                      className={canEdit ? "cursor-pointer hover:bg-cream/40" : ""}
+                      onClick={() => canEdit && setEditingProduct(p)}
+                    >
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/product/${p.slug}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-medium hover:underline"
+                        >
+                          {p.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-xs">{p.brandName ?? p.brandSlug}</td>
+                      <td className="px-4 py-3 text-xs capitalize">
+                        {p.category} · {p.subcategory}
+                      </td>
+                      <td className="px-4 py-3 text-xs capitalize">
+                        {p.condition.replace("-", " ")}
+                      </td>
+                      <td className="px-4 py-3 font-medium">{formatLKR(p.price)}</td>
+                      <td className="px-4 py-3 text-xs">
+                        <span className={p.stock <= 3 ? "text-blush-700" : ""}>{p.stock}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs">
+                        {canEdit && (
+                          <button
+                            type="button"
+                            className="text-ink/50 hover:text-ink"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingProduct(p);
+                            }}
+                          >
+                            Edit →
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
+
+      {tab === "brands" && (
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-ink/60">{brands.length} brands</p>
+            <button
+              onClick={() => setEditingBrand(null)}
+              disabled={!canEdit}
+              className="btn-primary text-xs"
+            >
+              + New brand
+            </button>
+          </div>
+
+          {brands.length === 0 ? (
+            <Empty
+              title="No brands yet"
+              body={canEdit ? "Click ‘+ New brand’ to add your first one." : "Add brands from Supabase or sign in."}
+            />
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-ink/5 bg-white">
+              <table className="w-full text-sm">
+                <thead className="border-b border-ink/5 bg-cream/60 text-left text-xs uppercase tracking-wider text-ink/60">
+                  <tr>
+                    <th className="px-4 py-3">Brand</th>
+                    <th className="px-4 py-3">Slug</th>
+                    <th className="px-4 py-3">Products</th>
+                    <th className="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-ink/5">
+                  {brands.map((b) => {
+                    const count = products.filter((p) => p.brandSlug === b.slug).length;
+                    return (
+                      <tr
+                        key={b.id}
+                        className={canEdit ? "cursor-pointer hover:bg-cream/40" : ""}
+                        onClick={() => canEdit && setEditingBrand(b)}
+                      >
+                        <td className="px-4 py-3 font-medium">{b.name}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-ink/60">{b.slug}</td>
+                        <td className="px-4 py-3 text-xs">{count}</td>
+                        <td className="px-4 py-3 text-right text-xs">
+                          {canEdit && (
+                            <button
+                              type="button"
+                              className="text-ink/50 hover:text-ink"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingBrand(b);
+                              }}
+                            >
+                              Edit →
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Product modal */}
+      <Modal
+        open={productModalOpen}
+        onClose={() => setEditingProduct(undefined)}
+        title={editingProduct ? "Edit product" : "New product"}
+        subtitle="Saves to your Supabase products table — pages refresh within ~60s."
+      >
+        {productModalOpen && (
+          <ProductForm
+            initial={editingProduct}
+            brands={brands}
+            onSaved={onProductSaved}
+            onCancel={() => setEditingProduct(undefined)}
+          />
+        )}
+      </Modal>
+
+      {/* Brand modal */}
+      <Modal
+        open={brandModalOpen}
+        onClose={() => setEditingBrand(undefined)}
+        title={editingBrand ? "Edit brand" : "New brand"}
+        subtitle="Saves to your Supabase brands table."
+      >
+        {brandModalOpen && (
+          <BrandForm
+            initial={editingBrand}
+            onSaved={onBrandSaved}
+            onCancel={() => setEditingBrand(undefined)}
+          />
+        )}
+      </Modal>
     </section>
   );
 }

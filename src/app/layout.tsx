@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -30,7 +30,17 @@ export const metadata: Metadata = {
     title: "Facez — Authentic Branded Makeup",
     description: "Curated, 100% authentic branded makeup in Sri Lanka.",
     type: "website"
+  },
+  // icon.svg is auto-detected from /src/app/icon.svg by Next.js.
+  // Apple touch icon needs to be wired manually because Next.js's
+  // file-convention loader for apple-icon doesn't accept .svg yet.
+  icons: {
+    apple: [{ url: "/apple-icon.svg", type: "image/svg+xml" }]
   }
+};
+
+export const viewport: Viewport = {
+  themeColor: "#FAF7F2"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

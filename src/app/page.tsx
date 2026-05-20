@@ -1,17 +1,22 @@
 import Link from "next/link";
 import Image from "next/image";
 import { CATEGORIES } from "@/lib/categories";
-import { BRANDS } from "@/lib/brands";
-import { PRODUCTS } from "@/lib/products";
+import { fetchAllBrands, fetchAllProducts } from "@/lib/catalog";
+import type { Product } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 import BrandLogo from "@/components/BrandLogo";
 import TrustStrip from "@/components/TrustStrip";
 
-export default function HomePage() {
-  const viral = PRODUCTS.filter((p) => p.tags?.includes("viral")).slice(0, 8);
-  const newArrivals = PRODUCTS.filter((p) => p.tags?.includes("new")).slice(0, 8);
-  const offers = PRODUCTS.filter((p) => p.tags?.includes("offer")).slice(0, 8);
-  const featuredBrands = BRANDS.slice(0, 12);
+// ISR — re-fetch from Supabase at most every 60s when requests come in.
+export const revalidate = 60;
+
+export default async function HomePage() {
+  const [allProducts, allBrands] = await Promise.all([fetchAllProducts(), fetchAllBrands()]);
+
+  const viral = allProducts.filter((p) => p.tags?.includes("viral")).slice(0, 8);
+  const newArrivals = allProducts.filter((p) => p.tags?.includes("new")).slice(0, 8);
+  const offers = allProducts.filter((p) => p.tags?.includes("offer")).slice(0, 8);
+  const featuredBrands = allBrands.slice(0, 12);
 
   return (
     <>
@@ -181,7 +186,7 @@ function ProductRail({
   eyebrow: string;
   title: string;
   href: string;
-  products: typeof PRODUCTS;
+  products: Product[];
 }) {
   if (products.length === 0) return null;
   return (

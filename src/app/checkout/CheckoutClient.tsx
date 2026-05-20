@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { buildCartLines, cartTotals, useCart } from "@/lib/cart";
-import { BRANDS } from "@/lib/brands";
 import { formatLKR } from "@/lib/format";
 import { makeOrderId, saveOrder } from "@/lib/orders";
 import type { Order, OrderItem, PaymentMethod } from "@/lib/types";
@@ -77,12 +76,12 @@ export default function CheckoutClient() {
     setSubmitting(true);
 
     const orderItems: OrderItem[] = lines.map((l) => ({
-      productId: l.product.id,
-      name: l.product.name,
-      brand: BRANDS.find((b) => b.slug === l.product.brandSlug)?.name ?? l.product.brandSlug,
+      productId: l.productId,
+      name: l.snapshot.name,
+      brand: l.snapshot.brandName,
       qty: l.qty,
-      price: l.product.price,
-      image: l.product.images[0]
+      price: l.snapshot.price,
+      image: l.snapshot.image
     }));
 
     const order: Order = {
@@ -106,9 +105,6 @@ export default function CheckoutClient() {
     clear();
 
     if (payment === "payhere") {
-      // PayHere integration is a server-side concern (sandbox: https://sandbox.payhere.lk).
-      // In production, post the order to /api/payhere to get a checkout URL,
-      // then redirect. For now we route to confirmation in pending state.
       router.push(`/order/${order.id}?pay=payhere`);
       return;
     }
@@ -212,15 +208,23 @@ export default function CheckoutClient() {
           <p className="font-display text-xl">Your order</p>
           <ul className="mt-4 space-y-3">
             {lines.map((l) => (
-              <li key={l.product.id} className="flex gap-3">
+              <li key={l.productId} className="flex gap-3">
                 <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-beige">
-                  <Image src={l.product.images[0]} alt={l.product.name} fill sizes="56px" className="object-cover" />
+                  {l.snapshot.image && (
+                    <Image
+                      src={l.snapshot.image}
+                      alt={l.snapshot.name}
+                      fill
+                      sizes="56px"
+                      className="object-cover"
+                    />
+                  )}
                   <span className="absolute -right-1 -top-1 grid h-5 min-w-[20px] place-items-center rounded-full bg-ink px-1 text-[10px] text-white">
                     {l.qty}
                   </span>
                 </div>
                 <div className="flex flex-1 items-start justify-between gap-2 text-xs">
-                  <p className="line-clamp-2 pr-1">{l.product.name}</p>
+                  <p className="line-clamp-2 pr-1">{l.snapshot.name}</p>
                   <p className="font-medium">{formatLKR(l.lineTotal)}</p>
                 </div>
               </li>

@@ -13,7 +13,11 @@ interface Props {
 }
 
 export default function ProductCard({ product, priority }: Props) {
-  const brand = BRANDS.find((b) => b.slug === product.brandSlug);
+  // Prefer the brandName populated by catalog fetchers; fall back to local lookup.
+  const brandName =
+    product.brandName ??
+    BRANDS.find((b) => b.slug === product.brandSlug)?.name ??
+    product.brandSlug;
   const off = discountPct(product.price, product.originalPrice);
   const add = useCart((s) => s.add);
 
@@ -52,7 +56,7 @@ export default function ProductCard({ product, priority }: Props) {
       </Link>
 
       <div className="p-4">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-ink/50">{brand?.name}</p>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-ink/50">{brandName}</p>
         <Link
           href={`/product/${product.slug}`}
           className="mt-1 line-clamp-2 block text-sm font-medium text-ink hover:underline"
@@ -72,7 +76,7 @@ export default function ProductCard({ product, priority }: Props) {
         <button
           type="button"
           disabled={product.stock === 0}
-          onClick={() => add(product.id, 1)}
+          onClick={() => add(product, 1)}
           className="btn-outline mt-3 w-full text-xs"
         >
           {product.stock === 0 ? "Sold out" : "Add to bag"}

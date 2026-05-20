@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { BRANDS } from "@/lib/brands";
-import { PRODUCTS } from "@/lib/products";
+import { fetchAllBrands, fetchAllProducts } from "@/lib/catalog";
 
 export const metadata = { title: "Brands" };
+export const revalidate = 60;
 
-export default function BrandsPage() {
+export default async function BrandsPage() {
+  const [brands, products] = await Promise.all([fetchAllBrands(), fetchAllProducts()]);
+
   // Group brands alphabetically
-  const groups = BRANDS.reduce<Record<string, typeof BRANDS>>((acc, b) => {
+  const groups = brands.reduce<Record<string, typeof brands>>((acc, b) => {
     const key = b.name[0].toUpperCase();
     if (!acc[key]) acc[key] = [];
     acc[key].push(b);
@@ -47,7 +49,7 @@ export default function BrandsPage() {
               <p className="font-display text-2xl text-ink/80">{l}</p>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {groups[l].map((b) => {
-                  const count = PRODUCTS.filter((p) => p.brandSlug === b.slug).length;
+                  const count = products.filter((p) => p.brandSlug === b.slug).length;
                   return (
                     <Link
                       key={b.id}

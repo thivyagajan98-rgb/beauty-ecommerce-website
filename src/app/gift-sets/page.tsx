@@ -1,11 +1,13 @@
-import { PRODUCTS } from "@/lib/products";
+import { fetchAllProducts } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
 import CollectionHero from "@/components/CollectionHero";
 
 export const metadata = { title: "Gift Sets" };
+export const revalidate = 60;
 
-export default function GiftSetsPage() {
-  const items = PRODUCTS.filter((p) => p.tags?.includes("gift-set"));
+export default async function GiftSetsPage() {
+  const products = await fetchAllProducts();
+  const items = products.filter((p) => p.tags?.includes("gift-set"));
   return (
     <>
       <CollectionHero

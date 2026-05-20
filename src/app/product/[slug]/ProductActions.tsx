@@ -3,21 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart";
+import type { Product } from "@/lib/types";
 
-export default function ProductActions({
-  productId,
-  stock
-}: {
-  productId: string;
-  stock: number;
-}) {
+export default function ProductActions({ product }: { product: Product }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const add = useCart((s) => s.add);
+  const stock = product.stock;
 
   const onAdd = () => {
     if (stock === 0) return;
-    add(productId, qty);
+    add(product, qty);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
   };

@@ -1,11 +1,11 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Supabase client is OPTIONAL.
- * - When NEXT_PUBLIC_SUPABASE_URL & NEXT_PUBLIC_SUPABASE_ANON_KEY are set, this returns a real client.
+ * Supabase client (browser-safe — uses the anon public key).
+ * - When NEXT_PUBLIC_SUPABASE_URL & NEXT_PUBLIC_SUPABASE_ANON_KEY are set, returns a real client.
  * - Otherwise, returns null and the app falls back to local mock data.
  *
- * See `supabase/schema.sql` for the database schema.
+ * Sessions are persisted so admin auth survives page reloads.
  */
 let _client: SupabaseClient | null = null;
 
@@ -15,7 +15,11 @@ export function getSupabase(): SupabaseClient | null {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
   _client = createClient(url, key, {
-    auth: { persistSession: false }
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false
+    }
   });
   return _client;
 }

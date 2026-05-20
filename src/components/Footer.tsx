@@ -1,11 +1,12 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 export default function Footer() {
   return (
     <footer className="mt-16 border-t border-ink/10 bg-beige">
       <div className="container-x grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="font-display text-2xl">Facez</p>
+          <Logo size="md" />
           <p className="mt-2 max-w-xs text-sm text-ink/70">
             Curated, 100% authentic branded makeup — delivered island-wide in Sri Lanka.
           </p>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
 import { CATEGORIES } from "@/lib/categories";
+import Logo from "@/components/Logo";
 
 const NAV = [
   { href: "/shop", label: "Shop" },
@@ -35,8 +36,8 @@ export default function Header() {
         </button>
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 lg:flex-1">
-          <span className="font-display text-2xl tracking-tight">Facez</span>
+        <Link href="/" aria-label="Facez home" className="flex items-center gap-2 lg:flex-1">
+          <Logo size="md" />
           <span className="hidden text-xs uppercase tracking-[0.25em] text-ink/50 sm:inline">
             .lk
           </span>

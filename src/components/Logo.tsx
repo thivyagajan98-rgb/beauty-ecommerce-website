@@ -3,19 +3,17 @@ import Image from "next/image";
 /**
  * Site logo.
  *
- * Defaults to the placeholder wordmarks shipped at /public/logo.svg
- * and /public/logo-dark.svg (for dark backgrounds).
+ * Defaults to the FACEZ Cosmetics logo at /public/logo.png.
  *
- * To use your own logo:
- *   1. Drop your file into /public — e.g. /public/logo.png or /public/logo.svg
- *      (Optional: /public/logo-dark.svg or .png for the dark variant.)
- *   2. EITHER replace the default files in place,
- *      OR set NEXT_PUBLIC_LOGO_SRC (and NEXT_PUBLIC_LOGO_SRC_DARK) in .env.local
- *      to point to your custom paths.
+ * To use a different logo:
+ *   1. Replace /public/logo.png with your own file (any extension), OR
+ *   2. Set NEXT_PUBLIC_LOGO_SRC in .env.local to a different path.
+ *
+ * For a dark-background variant, drop /public/logo-dark.png and set
+ * NEXT_PUBLIC_LOGO_SRC_DARK if you want a different file.
  */
 type LogoVariant = "light" | "dark";
-// "light"  = for light backgrounds (renders dark text)
-// "dark"   = for dark backgrounds  (renders light text)
+// "light" = for light backgrounds, "dark" = for dark backgrounds.
 
 interface LogoProps {
   className?: string;
@@ -27,15 +25,20 @@ interface LogoProps {
   text?: string;
 }
 
+// Default to the PNG (the wrapper SVGs at /logo.svg also embed this file
+// so either path works; PNG is the source of truth).
 const DEFAULT_SRC: Record<LogoVariant, string> = {
-  light: "/logo.svg",
-  dark: "/logo-dark.svg"
+  light: "/logo.png",
+  dark: "/logo.png"
 };
 
+// Logo image is 833×298 px (≈ 2.8 : 1 aspect ratio).
+const ASPECT = 833 / 298;
+
 const HEIGHTS: Record<NonNullable<LogoProps["size"]>, number> = {
-  sm: 24,
-  md: 32,
-  lg: 44
+  sm: 28,
+  md: 40,
+  lg: 56
 };
 
 const TEXT_SIZE: Record<NonNullable<LogoProps["size"]>, string> = {
@@ -56,8 +59,8 @@ export default function Logo({
       ? process.env.NEXT_PUBLIC_LOGO_SRC_DARK
       : process.env.NEXT_PUBLIC_LOGO_SRC;
   const src = customSrc || DEFAULT_SRC[variant];
-  // The wordmark is wider than tall (3:1 aspect), so allow more horizontal space.
   const height = HEIGHTS[size];
+  const width = Math.round(height * ASPECT);
 
   if (!textOnly) {
     return (
@@ -66,9 +69,8 @@ export default function Logo({
           src={src}
           alt={text}
           height={height}
-          width={height * 3.3}
+          width={width}
           priority
-          unoptimized // SVGs render best as-is
           className="h-auto w-auto object-contain"
           style={{ maxHeight: height }}
         />

@@ -20,14 +20,14 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "Facez — Authentic Branded Makeup, Sri Lanka",
-    template: "%s · Facez"
+    default: "Facez Cosmetics — Authentic Branded Makeup, Sri Lanka",
+    template: "%s · Facez Cosmetics"
   },
   description:
-    "Facez.lk — curated, 100% authentic branded makeup in Sri Lanka. New & gently used pieces from Charlotte Tilbury, Rare Beauty, MAC, Fenty, Dior and more.",
+    "Facez Cosmetics — curated, 100% authentic branded makeup in Sri Lanka. New & gently used pieces from Charlotte Tilbury, Rare Beauty, MAC, Fenty, Dior and more.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   openGraph: {
-    title: "Facez — Authentic Branded Makeup",
+    title: "Facez Cosmetics — Authentic Branded Makeup",
     description: "Curated, 100% authentic branded makeup in Sri Lanka.",
     type: "website"
   }

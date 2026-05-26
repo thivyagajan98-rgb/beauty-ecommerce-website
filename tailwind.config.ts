@@ -9,6 +9,11 @@ const config: Config = {
         cream: "#FAF7F2",
         beige: "#F1EAE0",
         sand: "#E8DCC9",
+        magenta: {
+          DEFAULT: "#E6177A",
+          500: "#E6177A",
+          600: "#C70F66"
+        },
         blush: {
           50: "#FDF4F4",
           100: "#FAE7E7",

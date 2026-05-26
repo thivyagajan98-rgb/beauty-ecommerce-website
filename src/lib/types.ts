@@ -25,6 +25,7 @@ export type Subcategory =
   | "eye-kits"
   // Lips
   | "lipstick"
+  | "liquid-lipstick"
   | "lip-gloss"
   | "lip-liner"
   | "lip-balm"

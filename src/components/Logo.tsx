@@ -49,7 +49,7 @@ export default function Logo({
   size = "md",
   variant = "light",
   textOnly,
-  text = "Facez"
+  text = "FACEZ"
 }: LogoProps) {
   const customSrc =
     variant === "dark"

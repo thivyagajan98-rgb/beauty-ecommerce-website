@@ -26,7 +26,7 @@ export const CATEGORIES: CategoryDef[] = [
   },
   {
     slug: "cheek",
-    name: "Cheek",
+    name: "Cheeks",
     emoji: "🌸",
     blurb: "Glow, sculpt & flush",
     subcategories: [
@@ -59,6 +59,7 @@ export const CATEGORIES: CategoryDef[] = [
     blurb: "Color, shine & care",
     subcategories: [
       { slug: "lipstick", name: "Lipstick" },
+      { slug: "liquid-lipstick", name: "Liquid Lipstick" },
       { slug: "lip-gloss", name: "Lip Gloss" },
       { slug: "lip-liner", name: "Lip Liner" },
       { slug: "lip-balm", name: "Lip Balm" },

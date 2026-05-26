@@ -1,32 +1,51 @@
 import LegalPage from "@/components/LegalPage";
 
-export const metadata = { title: "Return Policy" };
+export const metadata = { title: "Returns Policy" };
 
 export default function Page() {
+  const wa = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "94760181199";
   return (
-    <LegalPage eyebrow="Help" title="Return Policy" updated="May 2026">
+    <LegalPage eyebrow="Help" title="Returns Policy">
       <p>
-        We want you to love what you ordered. If something isn’t right, here’s how it works:
+        Due to hygiene and safety reasons, FACEZ.lk does not accept any returns or exchanges
+        on cosmetics and grooming products once sold.
       </p>
 
-      <h2>Eligibility</h2>
+      <h2>Not accepted if</h2>
       <ul>
-        <li>Returns accepted within 7 days of delivery for defective or mis-shipped items.</li>
-        <li>For hygiene reasons, opened lipsticks, mascaras, lip glosses & cream products
-          are non-returnable unless defective.</li>
-        <li>Sale & gently-used items are final sale unless we made an error.</li>
+        <li>Product opened</li>
+        <li>Packaging removed</li>
+        <li>Product used</li>
       </ul>
 
-      <h2>How to start a return</h2>
+      <h2>Only accepted if (our side mistake)</h2>
       <ul>
-        <li>Message us on WhatsApp with your order ID and photos.</li>
-        <li>Our team confirms eligibility within 24 hours.</li>
-        <li>We arrange pickup or share a return address.</li>
-        <li>Refunds are issued within 3–5 business days of receipt.</li>
+        <li>Wrong item sent</li>
+        <li>Damaged item received</li>
+        <li>Faulty product</li>
       </ul>
 
-      <h2>Damaged in transit?</h2>
-      <p>Please send unboxing photos within 24 hours of delivery — we’ll replace it on us.</p>
+      <h2>Conditions</h2>
+      <ul>
+        <li>Must inform within 48 hours after receiving the product.</li>
+        <li>Must provide proof (photo or video).</li>
+      </ul>
+
+      <h2>Resolution</h2>
+      <ul>
+        <li>Replacement, or</li>
+        <li>Refund (if replacement is not available).</li>
+      </ul>
+
+      <h2>Contact</h2>
+      <p>
+        WhatsApp:{" "}
+        <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer">
+          +94 760 181199
+        </a>
+        <br />
+        Email: <a href="mailto:facezcosmeticslk@gmail.com">facezcosmeticslk@gmail.com</a>
+      </p>
     </LegalPage>
   );
 }

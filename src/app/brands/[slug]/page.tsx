@@ -72,7 +72,7 @@ export default async function BrandPage({ params }: Props) {
       <section className="border-t border-ink/5 bg-white">
         <div className="container-x py-8 text-xs text-ink/60">
           <p>
-            Disclaimer: Facez.lk is an independent retailer and is not affiliated with,
+            Disclaimer: FACEZ.lk is an independent retailer and is not affiliated with,
             endorsed by, or sponsored by {brand.name}. All trademarks are the property of
             their respective owners.
           </p>

@@ -93,8 +93,8 @@ export function buildCartLines(items: CartItem[]): CartLine[] {
 export function cartTotals(lines: CartLine[]) {
   const subtotal = lines.reduce((s, l) => s + l.lineTotal, 0);
   const itemCount = lines.reduce((s, l) => s + l.qty, 0);
-  // Free shipping threshold; flat LKR 450 otherwise.
-  const shipping = subtotal === 0 ? 0 : subtotal >= 15000 ? 0 : 450;
+  // Free shipping over LKR 25,000; flat LKR 450 otherwise.
+  const shipping = subtotal === 0 ? 0 : subtotal >= 25000 ? 0 : 450;
   const total = subtotal + shipping;
   return { subtotal, shipping, total, itemCount };
 }

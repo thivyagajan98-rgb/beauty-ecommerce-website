@@ -131,9 +131,9 @@ export default function CartClient() {
               <dd>{formatLKR(totals.total)}</dd>
             </div>
           </dl>
-          {totals.subtotal < 15000 && (
+          {totals.subtotal < 25000 && (
             <p className="mt-3 rounded-xl bg-blush-50 p-3 text-xs text-blush-700">
-              Add {formatLKR(15000 - totals.subtotal)} more for free shipping.
+              Add {formatLKR(25000 - totals.subtotal)} more for free delivery.
             </p>
           )}
           <Link href="/checkout" className="btn-primary mt-5 w-full">Checkout</Link>

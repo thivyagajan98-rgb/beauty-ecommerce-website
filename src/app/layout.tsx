@@ -1,52 +1,45 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import MobileBottomBar from "@/components/MobileBottomBar";
 
-const inter = Inter({
+// Single clean modern sans for the whole site (body + display).
+const outfit = Outfit({
   subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap"
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-playfair",
-  display: "swap"
+  variable: "--font-outfit",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700"]
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Facez — Authentic Branded Makeup, Sri Lanka",
-    template: "%s · Facez"
+    default: "FACEZ.lk — Sri Lanka's No.1 Authentic Makeup Store",
+    template: "%s · FACEZ.lk"
   },
   description:
-    "Facez.lk — curated, 100% authentic branded makeup in Sri Lanka. New & gently used pieces from Charlotte Tilbury, Rare Beauty, MAC, Fenty, Dior and more.",
+    "Sri Lanka's No.1 brand bringing authentic makeup since 2015. Charlotte Tilbury, Dior, Huda Beauty, Fenty, Rare Beauty, Maybelline & more — delivered island-wide.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   openGraph: {
-    title: "Facez — Authentic Branded Makeup",
-    description: "Curated, 100% authentic branded makeup in Sri Lanka.",
+    title: "FACEZ.lk — Authentic Makeup, Sri Lanka",
+    description: "Sri Lanka's No.1 brand bringing authentic makeup since 2015.",
     type: "website"
   },
-  // icon.svg is auto-detected from /src/app/icon.svg by Next.js.
-  // Apple touch icon needs to be wired manually because Next.js's
-  // file-convention loader for apple-icon doesn't accept .svg yet.
   icons: {
     apple: [{ url: "/apple-icon.svg", type: "image/svg+xml" }]
   }
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FAF7F2"
+  themeColor: "#FFFFFF"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="min-h-screen bg-cream text-ink antialiased">
+    <html lang="en" className={outfit.variable}>
+      <body className="min-h-screen bg-white text-ink antialiased">
         <Header />
         <main className="pb-24 lg:pb-0">{children}</main>
         <Footer />

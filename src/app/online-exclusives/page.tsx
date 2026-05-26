@@ -13,7 +13,7 @@ export default async function OnlineExclusivesPage() {
       <CollectionHero
         eyebrow="Online only"
         title="Online Exclusives"
-        description="Rare imports & limited drops you can only get on Facez.lk."
+        description="Rare imports & limited drops you can only get on FACEZ.lk."
         tone="ink"
       />
       <section className="container-x section">

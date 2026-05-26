@@ -120,12 +120,12 @@ export default async function ProductPage({ params }: Props) {
             <p className="leading-relaxed">{product.description}</p>
           </div>
 
-          {/* Authenticity */}
+          {/* Authentic product note */}
           <div className="mt-8 rounded-2xl border border-blush-200 bg-blush-50 p-5">
             <div className="flex items-start gap-3">
               <Verified />
               <div>
-                <p className="text-sm font-semibold">Authenticity guaranteed</p>
+                <p className="text-sm font-semibold">100% authentic</p>
                 <p className="mt-1 text-xs text-ink/70">
                   {product.authenticityNote ??
                     "Sourced from authorised retailers or verified resellers. Batch codes verified on dispatch."}

@@ -70,7 +70,7 @@ export default function OrderConfirmationClient({ orderId }: { orderId: string }
             <p className="font-semibold">Bank transfer details</p>
             <ul className="mt-2 space-y-1 text-ink/70">
               <li>Bank: Commercial Bank of Ceylon</li>
-              <li>Account name: Facez (Pvt) Ltd</li>
+              <li>Account name: FACEZ.lk</li>
               <li>Account #: 0000-000-0000</li>
               <li>Reference: {order.id}</li>
             </ul>
@@ -108,8 +108,8 @@ export default function OrderConfirmationClient({ orderId }: { orderId: string }
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link href="/shop" className="btn-primary">Continue shopping</Link>
           <a
-            href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "94770000000"}?text=${encodeURIComponent(
-              `Hi Facez! Order ${order.id}`
+            href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "94760181199"}?text=${encodeURIComponent(
+              `Hi FACEZ.lk! Order ${order.id}`
             )}`}
             className="btn-outline"
             target="_blank"

@@ -1,14 +1,16 @@
 import { Suspense } from "react";
 import ShopClient from "./ShopClient";
+import { fetchAllBrands, fetchAllProducts } from "@/lib/catalog";
 
-export const metadata = {
-  title: "Shop"
-};
+export const metadata = { title: "Shop" };
+export const revalidate = 60;
 
-export default function ShopPage() {
+export default async function ShopPage() {
+  const [products, brands] = await Promise.all([fetchAllProducts(), fetchAllBrands()]);
+
   return (
     <Suspense fallback={<ShopSkeleton />}>
-      <ShopClient />
+      <ShopClient products={products} brands={brands} />
     </Suspense>
   );
 }

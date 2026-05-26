@@ -6,7 +6,7 @@ export default function Page() {
   return (
     <LegalPage eyebrow="Legal" title="Brand Disclaimer">
       <p>
-        Facez.lk is an independent retailer based in Sri Lanka. We are not affiliated with,
+        FACEZ.lk is an independent retailer based in Sri Lanka. We are not affiliated with,
         endorsed by, or sponsored by any of the brands featured on this website.
       </p>
       <p>

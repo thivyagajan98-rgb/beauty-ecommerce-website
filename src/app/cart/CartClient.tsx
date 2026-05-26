@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { buildCartLines, cartTotals, useCart } from "@/lib/cart";
-import { BRANDS } from "@/lib/brands";
 import { formatLKR } from "@/lib/format";
 
 export default function CartClient() {
@@ -38,74 +37,75 @@ export default function CartClient() {
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_380px]">
         <ul className="space-y-4">
-          {lines.map(({ product, qty, lineTotal }) => {
-            const brand = BRANDS.find((b) => b.slug === product.brandSlug);
-            return (
-              <li
-                key={product.id}
-                className="flex gap-4 rounded-2xl border border-ink/5 bg-white p-3 sm:p-4"
+          {lines.map(({ productId, qty, snapshot, lineTotal }) => (
+            <li
+              key={productId}
+              className="flex gap-4 rounded-2xl border border-ink/5 bg-white p-3 sm:p-4"
+            >
+              <Link
+                href={`/product/${snapshot.slug}`}
+                className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-xl bg-beige sm:w-28"
               >
-                <Link
-                  href={`/product/${product.slug}`}
-                  className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-xl bg-beige sm:w-28"
-                >
+                {snapshot.image && (
                   <Image
-                    src={product.images[0]}
-                    alt={product.name}
+                    src={snapshot.image}
+                    alt={snapshot.name}
                     fill
                     sizes="120px"
                     className="object-cover"
                   />
-                </Link>
-                <div className="flex flex-1 flex-col justify-between gap-2">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.16em] text-ink/50">
-                      {brand?.name}
-                    </p>
-                    <Link
-                      href={`/product/${product.slug}`}
-                      className="line-clamp-2 text-sm font-medium hover:underline"
+                )}
+              </Link>
+              <div className="flex flex-1 flex-col justify-between gap-2">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.16em] text-ink/50">
+                    {snapshot.brandName}
+                  </p>
+                  <Link
+                    href={`/product/${snapshot.slug}`}
+                    className="line-clamp-2 text-sm font-medium hover:underline"
+                  >
+                    {snapshot.name}
+                  </Link>
+                  {snapshot.condition === "gently-used" && (
+                    <span className="mt-1 inline-block text-[11px] text-ink/60">
+                      Gently Used
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-end justify-between gap-3">
+                  <div className="flex items-center rounded-full border border-ink/10 bg-cream">
+                    <button
+                      aria-label="Decrease"
+                      className="px-3 py-1.5 text-base"
+                      onClick={() => setQty(productId, Math.max(0, qty - 1))}
                     >
-                      {product.name}
-                    </Link>
-                    {product.condition === "gently-used" && (
-                      <span className="mt-1 inline-block text-[11px] text-ink/60">
-                        Gently Used
-                      </span>
-                    )}
+                      −
+                    </button>
+                    <span className="min-w-[2ch] text-center text-sm font-medium">{qty}</span>
+                    <button
+                      aria-label="Increase"
+                      className="px-3 py-1.5 text-base"
+                      onClick={() =>
+                        setQty(productId, Math.min(snapshot.stock || 99, qty + 1))
+                      }
+                    >
+                      +
+                    </button>
                   </div>
-                  <div className="flex items-end justify-between gap-3">
-                    <div className="flex items-center rounded-full border border-ink/10 bg-cream">
-                      <button
-                        aria-label="Decrease"
-                        className="px-3 py-1.5 text-base"
-                        onClick={() => setQty(product.id, Math.max(0, qty - 1))}
-                      >
-                        −
-                      </button>
-                      <span className="min-w-[2ch] text-center text-sm font-medium">{qty}</span>
-                      <button
-                        aria-label="Increase"
-                        className="px-3 py-1.5 text-base"
-                        onClick={() => setQty(product.id, Math.min(product.stock, qty + 1))}
-                      >
-                        +
-                      </button>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold">{formatLKR(lineTotal)}</p>
-                      <button
-                        onClick={() => remove(product.id)}
-                        className="text-[11px] text-ink/50 underline-offset-2 hover:text-blush-600 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold">{formatLKR(lineTotal)}</p>
+                    <button
+                      onClick={() => remove(productId)}
+                      className="text-[11px] text-ink/50 underline-offset-2 hover:text-blush-600 hover:underline"
+                    >
+                      Remove
+                    </button>
                   </div>
                 </div>
-              </li>
-            );
-          })}
+              </div>
+            </li>
+          ))}
         </ul>
 
         {/* Summary */}
@@ -131,9 +131,9 @@ export default function CartClient() {
               <dd>{formatLKR(totals.total)}</dd>
             </div>
           </dl>
-          {totals.subtotal < 15000 && (
+          {totals.subtotal < 25000 && (
             <p className="mt-3 rounded-xl bg-blush-50 p-3 text-xs text-blush-700">
-              Add {formatLKR(15000 - totals.subtotal)} more for free shipping.
+              Add {formatLKR(25000 - totals.subtotal)} more for free delivery.
             </p>
           )}
           <Link href="/checkout" className="btn-primary mt-5 w-full">Checkout</Link>

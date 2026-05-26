@@ -1,9 +1,9 @@
 "use client";
 
 export default function WhatsAppButton() {
-  const num = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "94770000000";
+  const num = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "94760181199";
   const href = `https://wa.me/${num}?text=${encodeURIComponent(
-    "Hi Facez! I'd like to order:"
+    "Hi FACEZ.lk! I'd like to order:"
   )}`;
 
   return (

@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { findProductBySlug, PRODUCTS, relatedProducts } from "@/lib/products";
-import { findBrand } from "@/lib/brands";
+import {
+  fetchAllProducts,
+  fetchProductBySlug,
+  fetchRelatedProducts
+} from "@/lib/catalog";
 import { findSubcategoryName } from "@/lib/categories";
 import { formatLKR, discountPct } from "@/lib/format";
 import ProductCard from "@/components/ProductCard";
@@ -12,27 +15,28 @@ interface Props {
   params: { slug: string };
 }
 
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ slug: p.slug }));
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  const products = await fetchAllProducts();
+  return products.map((p) => ({ slug: p.slug }));
 }
 
-export function generateMetadata({ params }: Props) {
-  const product = findProductBySlug(params.slug);
+export async function generateMetadata({ params }: Props) {
+  const product = await fetchProductBySlug(params.slug);
   if (!product) return { title: "Product not found" };
-  const brand = findBrand(product.brandSlug);
   return {
-    title: `${product.name} — ${brand?.name ?? ""}`,
+    title: `${product.name} — ${product.brandName ?? ""}`,
     description: product.description
   };
 }
 
-export default function ProductPage({ params }: Props) {
-  const product = findProductBySlug(params.slug);
+export default async function ProductPage({ params }: Props) {
+  const product = await fetchProductBySlug(params.slug);
   if (!product) notFound();
 
-  const brand = findBrand(product.brandSlug);
   const off = discountPct(product.price, product.originalPrice);
-  const related = relatedProducts(product, 4);
+  const related = await fetchRelatedProducts(product, 4);
   const subName = findSubcategoryName(product.subcategory);
 
   return (
@@ -66,7 +70,7 @@ export default function ProductPage({ params }: Props) {
             href={`/brands/${product.brandSlug}`}
             className="text-xs uppercase tracking-[0.2em] text-blush-600 hover:underline"
           >
-            {brand?.name}
+            {product.brandName}
           </Link>
           <h1 className="font-display mt-2 text-3xl leading-tight sm:text-4xl">
             {product.name}
@@ -109,19 +113,19 @@ export default function ProductPage({ params }: Props) {
           </div>
 
           {/* Add to cart */}
-          <ProductActions productId={product.id} stock={product.stock} />
+          <ProductActions product={product} />
 
           {/* Description */}
           <div className="mt-8 space-y-4 text-sm text-ink/80">
             <p className="leading-relaxed">{product.description}</p>
           </div>
 
-          {/* Authenticity */}
+          {/* Authentic product note */}
           <div className="mt-8 rounded-2xl border border-blush-200 bg-blush-50 p-5">
             <div className="flex items-start gap-3">
               <Verified />
               <div>
-                <p className="text-sm font-semibold">Authenticity guaranteed</p>
+                <p className="text-sm font-semibold">100% authentic</p>
                 <p className="mt-1 text-xs text-ink/70">
                   {product.authenticityNote ??
                     "Sourced from authorised retailers or verified resellers. Batch codes verified on dispatch."}
@@ -145,7 +149,7 @@ export default function ProductPage({ params }: Props) {
         <section className="section bg-beige/60">
           <div className="container-x">
             <p className="eyebrow">You may also like</p>
-            <h2 className="h-display mt-2">More from {brand?.name}</h2>
+            <h2 className="h-display mt-2">More from {product.brandName}</h2>
             <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {related.map((p) => (
                 <ProductCard key={p.id} product={p} />

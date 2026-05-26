@@ -4,14 +4,17 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CATEGORIES, findCategory } from "@/lib/categories";
-import { BRANDS } from "@/lib/brands";
-import { PRODUCTS } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
-import type { Category } from "@/lib/types";
+import type { Brand, Category, Product } from "@/lib/types";
 
 type Sort = "featured" | "price-asc" | "price-desc" | "new";
 
-export default function ShopClient() {
+interface Props {
+  products: Product[];
+  brands: Brand[];
+}
+
+export default function ShopClient({ products: allProducts, brands: allBrands }: Props) {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -26,7 +29,7 @@ export default function ShopClient() {
   const cat = category ? findCategory(category) : undefined;
 
   const products = useMemo(() => {
-    let list = [...PRODUCTS];
+    let list = [...allProducts];
     if (category) list = list.filter((p) => p.category === category);
     if (subcategory) list = list.filter((p) => p.subcategory === subcategory);
     if (brand) list = list.filter((p) => p.brandSlug === brand);
@@ -45,20 +48,19 @@ export default function ShopClient() {
         break;
     }
     return list;
-  }, [category, subcategory, brand, tag, condition, sort]);
+  }, [allProducts, category, subcategory, brand, tag, condition, sort]);
 
   const setParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(params.toString());
     if (value === null || value === "") next.delete(key);
     else next.set(key, value);
-    // When changing category, reset subcategory
     if (key === "category") next.delete("sub");
     router.push(`/shop?${next.toString()}`);
   };
 
   const clearAll = () => router.push("/shop");
 
-  const activeBrand = brand ? BRANDS.find((b) => b.slug === brand) : undefined;
+  const activeBrand = brand ? allBrands.find((b) => b.slug === brand) : undefined;
 
   return (
     <>
@@ -75,10 +77,7 @@ export default function ShopClient() {
 
           {/* Category pills */}
           <div className="mt-5 flex flex-wrap gap-2">
-            <button
-              onClick={() => setParam("category", null)}
-              className={pill(!category)}
-            >
+            <button onClick={() => setParam("category", null)} className={pill(!category)}>
               All
             </button>
             {CATEGORIES.map((c) => (
@@ -125,6 +124,7 @@ export default function ShopClient() {
               brand={brand}
               condition={condition}
               tag={tag}
+              brands={allBrands}
               setParam={setParam}
               clearAll={clearAll}
             />
@@ -200,6 +200,7 @@ export default function ShopClient() {
               brand={brand}
               condition={condition}
               tag={tag}
+              brands={allBrands}
               setParam={(k, v) => {
                 setParam(k, v);
               }}
@@ -239,12 +240,14 @@ function Filters({
   brand,
   condition,
   tag,
+  brands,
   setParam,
   clearAll
 }: {
   brand: string | null;
   condition: string | null;
   tag: string | null;
+  brands: Brand[];
   setParam: (k: string, v: string | null) => void;
   clearAll: () => void;
 }) {
@@ -298,7 +301,7 @@ function Filters({
             checked={!brand}
             onClick={() => setParam("brand", null)}
           />
-          {BRANDS.map((b) => (
+          {brands.map((b) => (
             <FilterRadio
               key={b.id}
               label={b.name}

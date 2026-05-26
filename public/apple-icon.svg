@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="FACEZ Cosmetics">
+  <rect width="180" height="180" rx="40" fill="#111111"/>
+  <circle cx="90" cy="90" r="58" fill="#F26B8A"/>
+  <text x="90" y="121" text-anchor="middle" font-family="'Outfit', system-ui, sans-serif" font-weight="800" font-size="86" fill="#FFFFFF">C</text>
+</svg>

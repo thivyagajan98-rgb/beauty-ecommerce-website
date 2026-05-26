@@ -2,24 +2,139 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { getOrders, updateOrderStatus } from "@/lib/orders";
-import { PRODUCTS } from "@/lib/products";
-import { BRANDS } from "@/lib/brands";
+import { useRouter } from "next/navigation";
+import {
+  getOrders as getLocalOrders,
+  updateOrderStatus as updateLocalOrderStatus
+} from "@/lib/orders";
+import { fetchAllBrands, fetchAllProducts } from "@/lib/catalog";
 import { formatLKR } from "@/lib/format";
-import type { Order } from "@/lib/types";
+import { getSupabase } from "@/lib/supabase";
+import type { Brand, Order, Product } from "@/lib/types";
+import Modal from "@/components/admin/Modal";
+import ProductForm from "@/components/admin/ProductForm";
+import BrandForm from "@/components/admin/BrandForm";
 
-type Tab = "overview" | "orders" | "products";
+type Tab = "overview" | "orders" | "products" | "brands";
+type AuthState = "checking" | "authed" | "unauthed" | "no-supabase";
 
-const STATUS: Order["status"][] = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
+const STATUS: Order["status"][] = [
+  "pending",
+  "confirmed",
+  "shipped",
+  "delivered",
+  "cancelled"
+];
+
+interface OrderRow {
+  id: string;
+  customer_name: string;
+  phone: string;
+  email: string | null;
+  address: string;
+  city: string;
+  notes: string | null;
+  items: unknown;
+  subtotal: number;
+  shipping: number;
+  total: number;
+  payment_method: string;
+  status: string;
+  created_at: string;
+}
+
+function mapOrder(row: OrderRow): Order {
+  return {
+    id: row.id,
+    customerName: row.customer_name,
+    phone: row.phone,
+    email: row.email ?? undefined,
+    address: row.address,
+    city: row.city,
+    notes: row.notes ?? undefined,
+    items: (row.items as Order["items"]) ?? [],
+    subtotal: Number(row.subtotal),
+    shipping: Number(row.shipping),
+    total: Number(row.total),
+    paymentMethod: row.payment_method as Order["paymentMethod"],
+    status: row.status as Order["status"],
+    createdAt: row.created_at
+  };
+}
 
 export default function AdminClient() {
+  const router = useRouter();
+  const [auth, setAuth] = useState<AuthState>("checking");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
   const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [tick, setTick] = useState(0);
 
+  // Form state
+  const [editingProduct, setEditingProduct] = useState<Product | null | undefined>(undefined);
+  const [editingBrand, setEditingBrand] = useState<Brand | null | undefined>(undefined);
+
+  const productModalOpen = editingProduct !== undefined;
+  const brandModalOpen = editingBrand !== undefined;
+
+  /* --------------------------- auth check --------------------------- */
   useEffect(() => {
-    setOrders(getOrders());
-  }, [tick]);
+    const sb = getSupabase();
+    if (!sb) {
+      setAuth("no-supabase");
+      return;
+    }
+    sb.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        setAuth("authed");
+        setUserEmail(data.session.user.email ?? null);
+      } else {
+        setAuth("unauthed");
+      }
+    });
+
+    const { data: sub } = sb.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setAuth("authed");
+        setUserEmail(session.user.email ?? null);
+      } else {
+        setAuth("unauthed");
+      }
+    });
+
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // Redirect unauthed users to login.
+  useEffect(() => {
+    if (auth === "unauthed") router.replace("/admin/login");
+  }, [auth, router]);
+
+  /* --------------------------- data load ---------------------------- */
+  useEffect(() => {
+    if (auth === "checking" || auth === "unauthed") return;
+    const sb = getSupabase();
+
+    fetchAllProducts().then(setProducts);
+    fetchAllBrands().then(setBrands);
+
+    if (sb && auth === "authed") {
+      sb.from("orders")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .then(({ data, error }) => {
+          if (error || !data) {
+            setOrders([]);
+            return;
+          }
+          setOrders((data as OrderRow[]).map(mapOrder));
+        });
+    } else {
+      setOrders(getLocalOrders());
+    }
+  }, [auth, tick]);
 
   const stats = useMemo(() => {
     const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
@@ -30,29 +145,84 @@ export default function AdminClient() {
       revenue: totalRevenue,
       pending,
       confirmed,
-      products: PRODUCTS.length,
-      brands: BRANDS.length
+      products: products.length,
+      brands: brands.length
     };
-  }, [orders]);
+  }, [orders, products, brands]);
 
-  const onStatus = (id: string, status: Order["status"]) => {
-    updateOrderStatus(id, status);
+  /* --------------------------- actions ------------------------------ */
+  const onStatus = async (id: string, status: Order["status"]) => {
+    const sb = getSupabase();
+    if (sb && auth === "authed") {
+      const { error } = await sb.from("orders").update({ status }).eq("id", id);
+      if (!error) setTick((t) => t + 1);
+      return;
+    }
+    updateLocalOrderStatus(id, status);
     setTick((t) => t + 1);
   };
 
+  const signOut = async () => {
+    const sb = getSupabase();
+    if (sb) await sb.auth.signOut();
+    router.replace("/admin/login");
+  };
+
+  const onProductSaved = () => {
+    setEditingProduct(undefined);
+    setTick((t) => t + 1);
+  };
+  const onBrandSaved = () => {
+    setEditingBrand(undefined);
+    setTick((t) => t + 1);
+  };
+
+  /* --------------------------- render ------------------------------- */
+  if (auth === "checking" || auth === "unauthed") {
+    return (
+      <section className="container-x section">
+        <div className="text-sm text-ink/60">Checking session…</div>
+      </section>
+    );
+  }
+
+  const canEdit = auth === "authed";
+
   return (
     <section className="container-x py-10">
+      {auth === "no-supabase" && (
+        <div className="mb-6 rounded-2xl border border-blush-200 bg-blush-50 p-4 text-sm text-blush-700">
+          <p className="font-semibold">Local dev mode</p>
+          <p className="mt-1 text-xs">
+            Supabase env vars aren’t set. Configure Supabase to enable real authentication,
+            live orders, and admin-panel catalog editing.
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-end justify-between gap-3 border-b border-ink/10 pb-4">
         <div>
           <p className="eyebrow">Admin</p>
           <h1 className="font-display mt-1 text-3xl">Dashboard</h1>
           <p className="mt-1 text-xs text-ink/50">
-            Local-only view (data persisted on this device).{" "}
-            <Link href="/" className="underline">Back to site</Link>
+            {userEmail ? (
+              <>
+                Signed in as {userEmail} ·{" "}
+                <button
+                  onClick={signOut}
+                  className="underline underline-offset-2 hover:text-blush-700"
+                >
+                  Sign out
+                </button>{" "}
+                · <Link href="/" className="underline">Back to site</Link>
+              </>
+            ) : (
+              <Link href="/" className="underline">Back to site</Link>
+            )}
           </p>
         </div>
-        <nav className="flex gap-1 rounded-full bg-white p-1 shadow-soft">
-          {(["overview", "orders", "products"] as Tab[]).map((t) => (
+        <nav className="flex flex-wrap gap-1 rounded-full bg-white p-1 shadow-soft">
+          {(["overview", "orders", "products", "brands"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -149,55 +319,202 @@ export default function AdminClient() {
       )}
 
       {tab === "products" && (
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-ink/5 bg-white">
-          <table className="w-full text-sm">
-            <thead className="border-b border-ink/5 bg-cream/60 text-left text-xs uppercase tracking-wider text-ink/60">
-              <tr>
-                <th className="px-4 py-3">Product</th>
-                <th className="px-4 py-3">Brand</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Condition</th>
-                <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Stock</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-ink/5">
-              {PRODUCTS.map((p) => {
-                const brand = BRANDS.find((b) => b.slug === p.brandSlug);
-                return (
-                  <tr key={p.id}>
-                    <td className="px-4 py-3">
-                      <Link href={`/product/${p.slug}`} className="font-medium hover:underline">
-                        {p.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-xs">{brand?.name}</td>
-                    <td className="px-4 py-3 text-xs capitalize">
-                      {p.category} · {p.subcategory}
-                    </td>
-                    <td className="px-4 py-3 text-xs capitalize">{p.condition.replace("-", " ")}</td>
-                    <td className="px-4 py-3 font-medium">{formatLKR(p.price)}</td>
-                    <td className="px-4 py-3 text-xs">
-                      <span className={p.stock <= 3 ? "text-blush-700" : ""}>{p.stock}</span>
-                    </td>
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-ink/60">{products.length} products</p>
+            <button
+              onClick={() => setEditingProduct(null)}
+              disabled={!canEdit || brands.length === 0}
+              className="btn-primary text-xs"
+              title={
+                !canEdit
+                  ? "Sign in with a Supabase admin to edit"
+                  : brands.length === 0
+                    ? "Create a brand first"
+                    : ""
+              }
+            >
+              + New product
+            </button>
+          </div>
+
+          {products.length === 0 ? (
+            <Empty
+              title="No products yet"
+              body={canEdit ? "Click ‘+ New product’ to add your first one." : "Add products from Supabase or sign in."}
+            />
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-ink/5 bg-white">
+              <table className="w-full text-sm">
+                <thead className="border-b border-ink/5 bg-cream/60 text-left text-xs uppercase tracking-wider text-ink/60">
+                  <tr>
+                    <th className="px-4 py-3">Product</th>
+                    <th className="px-4 py-3">Brand</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3">Condition</th>
+                    <th className="px-4 py-3">Price</th>
+                    <th className="px-4 py-3">Stock</th>
+                    <th className="px-4 py-3"></th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <p className="border-t border-ink/5 p-4 text-xs text-ink/50">
-            Product editing connects to Supabase in production. See{" "}
-            <code className="rounded bg-ink/5 px-1">supabase/schema.sql</code>.
-          </p>
+                </thead>
+                <tbody className="divide-y divide-ink/5">
+                  {products.map((p) => (
+                    <tr
+                      key={p.id}
+                      className={canEdit ? "cursor-pointer hover:bg-cream/40" : ""}
+                      onClick={() => canEdit && setEditingProduct(p)}
+                    >
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/product/${p.slug}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-medium hover:underline"
+                        >
+                          {p.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-xs">{p.brandName ?? p.brandSlug}</td>
+                      <td className="px-4 py-3 text-xs capitalize">
+                        {p.category} · {p.subcategory}
+                      </td>
+                      <td className="px-4 py-3 text-xs capitalize">
+                        {p.condition.replace("-", " ")}
+                      </td>
+                      <td className="px-4 py-3 font-medium">{formatLKR(p.price)}</td>
+                      <td className="px-4 py-3 text-xs">
+                        <span className={p.stock <= 3 ? "text-blush-700" : ""}>{p.stock}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs">
+                        {canEdit && (
+                          <button
+                            type="button"
+                            className="text-ink/50 hover:text-ink"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingProduct(p);
+                            }}
+                          >
+                            Edit →
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
+
+      {tab === "brands" && (
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-ink/60">{brands.length} brands</p>
+            <button
+              onClick={() => setEditingBrand(null)}
+              disabled={!canEdit}
+              className="btn-primary text-xs"
+            >
+              + New brand
+            </button>
+          </div>
+
+          {brands.length === 0 ? (
+            <Empty
+              title="No brands yet"
+              body={canEdit ? "Click ‘+ New brand’ to add your first one." : "Add brands from Supabase or sign in."}
+            />
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-ink/5 bg-white">
+              <table className="w-full text-sm">
+                <thead className="border-b border-ink/5 bg-cream/60 text-left text-xs uppercase tracking-wider text-ink/60">
+                  <tr>
+                    <th className="px-4 py-3">Brand</th>
+                    <th className="px-4 py-3">Slug</th>
+                    <th className="px-4 py-3">Products</th>
+                    <th className="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-ink/5">
+                  {brands.map((b) => {
+                    const count = products.filter((p) => p.brandSlug === b.slug).length;
+                    return (
+                      <tr
+                        key={b.id}
+                        className={canEdit ? "cursor-pointer hover:bg-cream/40" : ""}
+                        onClick={() => canEdit && setEditingBrand(b)}
+                      >
+                        <td className="px-4 py-3 font-medium">{b.name}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-ink/60">{b.slug}</td>
+                        <td className="px-4 py-3 text-xs">{count}</td>
+                        <td className="px-4 py-3 text-right text-xs">
+                          {canEdit && (
+                            <button
+                              type="button"
+                              className="text-ink/50 hover:text-ink"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingBrand(b);
+                              }}
+                            >
+                              Edit →
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Product modal */}
+      <Modal
+        open={productModalOpen}
+        onClose={() => setEditingProduct(undefined)}
+        title={editingProduct ? "Edit product" : "New product"}
+        subtitle="Saves to your Supabase products table — pages refresh within ~60s."
+      >
+        {productModalOpen && (
+          <ProductForm
+            initial={editingProduct}
+            brands={brands}
+            onSaved={onProductSaved}
+            onCancel={() => setEditingProduct(undefined)}
+          />
+        )}
+      </Modal>
+
+      {/* Brand modal */}
+      <Modal
+        open={brandModalOpen}
+        onClose={() => setEditingBrand(undefined)}
+        title={editingBrand ? "Edit brand" : "New brand"}
+        subtitle="Saves to your Supabase brands table."
+      >
+        {brandModalOpen && (
+          <BrandForm
+            initial={editingBrand}
+            onSaved={onBrandSaved}
+            onCancel={() => setEditingBrand(undefined)}
+          />
+        )}
+      </Modal>
     </section>
   );
 }
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`rounded-2xl border p-5 ${accent ? "border-blush-300 bg-blush-50" : "border-ink/5 bg-white"}`}>
+    <div
+      className={`rounded-2xl border p-5 ${
+        accent ? "border-blush-300 bg-blush-50" : "border-ink/5 bg-white"
+      }`}
+    >
       <p className="text-xs uppercase tracking-wider text-ink/60">{label}</p>
       <p className="font-display mt-2 text-2xl">{value}</p>
     </div>

@@ -1,17 +1,19 @@
-import { PRODUCTS } from "@/lib/products";
+import { fetchAllProducts } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
 import CollectionHero from "@/components/CollectionHero";
 
 export const metadata = { title: "Online Exclusives" };
+export const revalidate = 60;
 
-export default function OnlineExclusivesPage() {
-  const items = PRODUCTS.filter((p) => p.tags?.includes("exclusive"));
+export default async function OnlineExclusivesPage() {
+  const products = await fetchAllProducts();
+  const items = products.filter((p) => p.tags?.includes("exclusive"));
   return (
     <>
       <CollectionHero
         eyebrow="Online only"
         title="Online Exclusives"
-        description="Rare imports & limited drops you can only get on Facez.lk."
+        description="Rare imports & limited drops you can only get on FACEZ.lk."
         tone="ink"
       />
       <section className="container-x section">

@@ -1,28 +1,34 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { BRANDS, findBrand } from "@/lib/brands";
-import { findProductsByBrand } from "@/lib/products";
+import {
+  fetchAllBrands,
+  fetchBrandBySlug,
+  fetchProductsByBrand
+} from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
 
 interface Props {
   params: { slug: string };
 }
 
-export function generateStaticParams() {
-  return BRANDS.map((b) => ({ slug: b.slug }));
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  const brands = await fetchAllBrands();
+  return brands.map((b) => ({ slug: b.slug }));
 }
 
-export function generateMetadata({ params }: Props) {
-  const brand = findBrand(params.slug);
+export async function generateMetadata({ params }: Props) {
+  const brand = await fetchBrandBySlug(params.slug);
   if (!brand) return { title: "Brand not found" };
   return { title: brand.name, description: brand.description };
 }
 
-export default function BrandPage({ params }: Props) {
-  const brand = findBrand(params.slug);
+export default async function BrandPage({ params }: Props) {
+  const brand = await fetchBrandBySlug(params.slug);
   if (!brand) notFound();
 
-  const products = findProductsByBrand(brand.slug);
+  const products = await fetchProductsByBrand(brand.slug);
 
   return (
     <>
@@ -66,7 +72,7 @@ export default function BrandPage({ params }: Props) {
       <section className="border-t border-ink/5 bg-white">
         <div className="container-x py-8 text-xs text-ink/60">
           <p>
-            Disclaimer: Facez.lk is an independent retailer and is not affiliated with,
+            Disclaimer: FACEZ.lk is an independent retailer and is not affiliated with,
             endorsed by, or sponsored by {brand.name}. All trademarks are the property of
             their respective owners.
           </p>

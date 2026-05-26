@@ -1,11 +1,13 @@
-import { PRODUCTS } from "@/lib/products";
+import { fetchAllProducts } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
 import CollectionHero from "@/components/CollectionHero";
 
 export const metadata = { title: "Offers & deals" };
+export const revalidate = 60;
 
-export default function OffersPage() {
-  const items = PRODUCTS.filter((p) => p.tags?.includes("offer") || p.originalPrice);
+export default async function OffersPage() {
+  const products = await fetchAllProducts();
+  const items = products.filter((p) => p.tags?.includes("offer") || p.originalPrice);
   return (
     <>
       <CollectionHero

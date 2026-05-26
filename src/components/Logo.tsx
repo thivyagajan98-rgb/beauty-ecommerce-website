@@ -56,6 +56,7 @@ export default function Logo({
       ? process.env.NEXT_PUBLIC_LOGO_SRC_DARK
       : process.env.NEXT_PUBLIC_LOGO_SRC;
   const src = customSrc || DEFAULT_SRC[variant];
+  // The wordmark is wider than tall (3:1 aspect), so allow more horizontal space.
   const height = HEIGHTS[size];
 
   if (!textOnly) {
@@ -65,7 +66,7 @@ export default function Logo({
           src={src}
           alt={text}
           height={height}
-          width={height * 4}
+          width={height * 3.3}
           priority
           unoptimized // SVGs render best as-is
           className="h-auto w-auto object-contain"

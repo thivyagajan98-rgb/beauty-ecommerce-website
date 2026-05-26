@@ -3,17 +3,11 @@ import Image from "next/image";
 /**
  * Site logo.
  *
- * Defaults to the FACEZ Cosmetics logo at /public/logo.png.
- *
- * To use a different logo:
- *   1. Replace /public/logo.png with your own file (any extension), OR
- *   2. Set NEXT_PUBLIC_LOGO_SRC in .env.local to a different path.
- *
- * For a dark-background variant, drop /public/logo-dark.png and set
- * NEXT_PUBLIC_LOGO_SRC_DARK if you want a different file.
+ * Defaults to /public/logo.png. Pass `withBackdrop` to wrap it in a small
+ * dark rounded chip — useful when the logo has light/white text and the
+ * page background is white (so the wordmark stays readable).
  */
 type LogoVariant = "light" | "dark";
-// "light" = for light backgrounds, "dark" = for dark backgrounds.
 
 interface LogoProps {
   className?: string;
@@ -23,22 +17,25 @@ interface LogoProps {
   textOnly?: boolean;
   /** Override the brand name shown in the text fallback. */
   text?: string;
+  /**
+   * Wrap the logo in a dark rounded chip. Use this whenever the image
+   * has white text and the surrounding page is light.
+   */
+  withBackdrop?: boolean;
 }
 
-// Default to the PNG (the wrapper SVGs at /logo.svg also embed this file
-// so either path works; PNG is the source of truth).
 const DEFAULT_SRC: Record<LogoVariant, string> = {
   light: "/logo.png",
   dark: "/logo.png"
 };
 
-// Logo image is 833×298 px (≈ 2.8 : 1 aspect ratio).
+// Logo image is 833x298 px (~ 2.8 : 1).
 const ASPECT = 833 / 298;
 
 const HEIGHTS: Record<NonNullable<LogoProps["size"]>, number> = {
-  sm: 28,
-  md: 40,
-  lg: 56
+  sm: 24,
+  md: 36,
+  lg: 52
 };
 
 const TEXT_SIZE: Record<NonNullable<LogoProps["size"]>, string> = {
@@ -52,7 +49,8 @@ export default function Logo({
   size = "md",
   variant = "light",
   textOnly,
-  text = "FACEZ"
+  text = "FACEZ",
+  withBackdrop = false
 }: LogoProps) {
   const customSrc =
     variant === "dark"
@@ -62,27 +60,40 @@ export default function Logo({
   const height = HEIGHTS[size];
   const width = Math.round(height * ASPECT);
 
-  if (!textOnly) {
+  if (textOnly) {
+    const textColor = variant === "dark" ? "text-cream" : "text-ink";
     return (
-      <span className={`inline-flex items-center ${className}`}>
-        <Image
-          src={src}
-          alt={text}
-          height={height}
-          width={width}
-          priority
-          className="h-auto w-auto object-contain"
-          style={{ maxHeight: height }}
-        />
+      <span
+        className={`font-display tracking-tight ${TEXT_SIZE[size]} ${textColor} ${className}`}
+      >
+        {text}
       </span>
     );
   }
 
-  const textColor = variant === "dark" ? "text-cream" : "text-ink";
-
-  return (
-    <span className={`font-display tracking-tight ${TEXT_SIZE[size]} ${textColor} ${className}`}>
-      {text}
-    </span>
+  const img = (
+    <Image
+      src={src}
+      alt={text}
+      height={height}
+      width={width}
+      priority
+      className="h-auto w-auto object-contain"
+      style={{ maxHeight: height }}
+    />
   );
+
+  if (withBackdrop) {
+    // Dark rounded chip — good for white-on-transparent logos sitting on a
+    // light page. The pink C accent in the logo pops against black.
+    return (
+      <span
+        className={`inline-flex items-center rounded-full bg-ink px-4 py-2 shadow-soft ${className}`}
+      >
+        {img}
+      </span>
+    );
+  }
+
+  return <span className={`inline-flex items-center ${className}`}>{img}</span>;
 }

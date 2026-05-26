@@ -8,7 +8,7 @@ export default function Footer() {
     <footer className="mt-16 border-t border-blush-100 bg-blush-50">
       <div className="container-x grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <Logo size="md" />
+          <Logo size="md" withBackdrop />
           <p className="mt-3 max-w-xs text-sm text-ink/70">
             Sri Lanka’s No.1 brand bringing 100% authentic makeup since 2015.
           </p>

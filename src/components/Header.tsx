@@ -46,7 +46,7 @@ export default function Header() {
           aria-label="FACEZ home"
           className="flex flex-1 items-center justify-center gap-1.5 lg:flex-none lg:justify-start"
         >
-          <Logo size="md" withBackdrop />
+          <Logo size="md" />
           <span className="hidden text-[10px] uppercase tracking-[0.3em] text-ink/50 sm:inline">
             .lk
           </span>
